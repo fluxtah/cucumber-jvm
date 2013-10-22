@@ -20,6 +20,7 @@ import cucumber.runtime.android.AndroidObjectFactory;
 import cucumber.runtime.android.AndroidResourceLoader;
 import cucumber.runtime.android.DexClassFinder;
 import cucumber.runtime.android.TestCaseCounter;
+import cucumber.runtime.android.TestContextReporter;
 import cucumber.runtime.io.ResourceLoader;
 import cucumber.runtime.java.JavaBackend;
 import cucumber.runtime.java.ObjectFactory;
@@ -27,6 +28,8 @@ import cucumber.runtime.model.CucumberFeature;
 import dalvik.system.DexFile;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.Reporter;
+import gherkin.formatter.model.Feature;
+import gherkin.formatter.model.Scenario;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,6 +42,24 @@ public class CucumberInstrumentation extends Instrumentation {
     private ClassLoader classLoader;
     private Runtime runtime;
     private boolean debug;
+	private Feature currentFeature;
+	private Scenario currentScenario;
+	
+	public void setCurrentFeature(Feature feature) {
+		currentFeature = feature;
+	}
+
+	public void setCurrentScenario(Scenario scenario) {
+		currentScenario = scenario;
+	}
+	
+	public Feature getCurrentFeature() {
+		return currentFeature;
+	}
+	
+	public Scenario getCurrentScenario() {
+		return currentScenario;
+	}
 
     @Override
     public void onCreate(Bundle arguments) {
@@ -103,6 +124,7 @@ public class CucumberInstrumentation extends Instrumentation {
 
         runtimeOptions.getFormatters().add(new AndroidInstrumentationReporter(runtime, this, numberOfTests));
         runtimeOptions.getFormatters().add(new AndroidLogcatReporter(TAG));
+        runtimeOptions.getFormatters().add(new TestContextReporter(this));
 
         final Reporter reporter = runtimeOptions.reporter(classLoader);
         final Formatter formatter = runtimeOptions.formatter(classLoader);
